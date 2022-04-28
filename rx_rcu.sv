@@ -134,7 +134,7 @@ module rx_rcu
 				if(eop) begin
 					nxt_state = EOP;
 				end
-				else if(!buff_full && d_edge) begin //may need to be buff_full == 63
+				else if(!buff_full) begin //may need to be buff_full == 63
 					nxt_state = DATA_REC;
 				end
 				else if(!eop || buff_full) begin

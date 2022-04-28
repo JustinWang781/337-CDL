@@ -471,6 +471,7 @@ module tb_usb_rx();
     // DUT Reset
     reset_dut;
 
+    //Sync + PID
     sync_send();
     tb_expected_rx_transfer_active = 1'b1;
 
@@ -478,25 +479,23 @@ module tb_usb_rx();
     send_encode(tb_test_data);
     tb_expected_rx_packet   = 4'b0011;   
 
-    // More data send
-    integer i;
-    for(i = 0; i < 2; i++)
-    begin
-      send_encode(data[i][7:0]);
-    end 
+    //First 2 data sends
+    tb_test_data            = 8'b01011111;      //STALL Decoded = 00011110
+    send_encode(tb_test_data);
 
-    for(i = 2; i < bytes; i++)
-    begin
-      //expected store
-      send_encode(data[i][7:0]);
-      //expected rx data
-      //expected store
-    end
+    tb_test_data            = 8'b01100011;      //NAK Decoded = 01011010
+    send_encode(tb_test_data);
 
-    //expected store
+    //Eval Send
+    tb_test_data            = 8'b00011011;      //ACK Decoded = 11010010
+    tb_expected_store_rx_packet_data = 1'b0;
+    send_encode(tb_test_data);
+    tb_expected_rx_packet_data = 8'b11010010;
+    tb_expected_store_rx_packet_data = 1'b1;
+    check_outputs();
 
     send_eop();
-    tb_expected_rx_transfer_active = 1'b1;
+    tb_expected_rx_transfer_active = 1'b0;
 
     #(DATA_PERIOD * 2); 
 
