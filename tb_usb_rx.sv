@@ -37,7 +37,10 @@ module tb_usb_rx();
   reg     tb_check;
 
   // Test case 'inputs' used for test stimulus
-  reg [7:0] tb_test_data;
+  reg [7:0]       tb_test_data;
+  reg [15:0][7:0] tb_test_data_array;
+  logic [7:0] data;
+  integer i;
 
   // Test case expected output values for the test case
   reg       tb_expected_rx_transfer_active;
@@ -462,7 +465,7 @@ module tb_usb_rx();
     #(DATA_PERIOD * 2);
 */
 
-
+/*
     // Test case 8: Send data Check
     @(negedge tb_clk);
     tb_test_num++;
@@ -498,199 +501,133 @@ module tb_usb_rx();
     tb_expected_rx_transfer_active = 1'b0;
 
     #(DATA_PERIOD * 2); 
-
-
+*/
 
 /*
-    // Test case 2: Normal packet, max faster data rate
-    // Synchronize to falling edge of clock to prevent timing shifts from prior test case(s)
+    // Test case 9: Larger data Check (works on wave)
     @(negedge tb_clk);
-    tb_test_num += 1;
-    tb_test_case = "Max Fast Data-Rate, Normal Packet";
-    
-    // Setup packet info for debugging/verificaton signals
-    tb_test_data       = 8'b11010101;
-    tb_test_stop_bit   = 1'b1;
-    tb_test_bit_period = WORST_FAST_DATA_PERIOD;
-    tb_test_data_read  = 1'b1;
-    
-    // Define expected ouputs for this test case
-    // For a good packet RX Data value should match data sent
-    tb_expected_rx_data       = tb_test_data;
-    // Valid stop bit ('1') -> Valid data -> Active data ready output
-    tb_expected_data_ready    = tb_test_stop_bit; 
-    // Framing error if and only if bad stop_bit ('0') was sent
-    tb_expected_framing_error = ~tb_test_stop_bit;
-    // Not intentionally creating an overrun condition -> overrun should be 0
-    tb_expected_overrun       = 1'b0;
-    
+    tb_test_num++;
+    tb_test_case = "Send data check more";
+
     // DUT Reset
-    reset_dut;
+    reset_dut();
+
+
+    //Sync + PID
+    sync_send();
+    tb_expected_rx_transfer_active = 1'b1;
+
+    tb_test_data            = 8'b00010100;      //DATA0
+    send_encode(tb_test_data);
+    tb_expected_rx_packet   = 4'b0011;
+
+    tb_test_data_array = { {8'h32}, {8'h40}, {8'he3}, {8'h59}, {8'ha8}, {8'hb4}, {8'hc7}, {8'hd5}, {8'he9}, {8'h45}, {8'hf6}, {8'hcc} };
+    //tb_test_data_array_decoded = { {8'ha9}, {8'h3f}, {8'hda}, {8'h15}, {8'h06}, {8'h22}, {8'hb7}, {8'h81}, {8'hc4}, {8'h31}, {8'he4}, {8'hab} };
+
+    for(integer i = 0; i < 12; i++) begin
+      send_encode(tb_test_data_array[i][7:0]);
+    end
     
-    // Send packet
-    send_packet(tb_test_data, tb_test_stop_bit, tb_test_bit_period);
-    
-    // Wait for 2 data periods to allow DUT to finish processing the packet
-    #(tb_test_bit_period * 2);
-    
-    // Check outputs
-    check_outputs(tb_test_data_read);
-  
-    // Append additonal test cases here (such as overrun case)
+    tb_expected_store_rx_packet_data = 1'b1;
+    check_outputs();
+    send_eop();
+    tb_expected_rx_transfer_active = 1'b0;
 
+    #(DATA_PERIOD * 2);
 
+  */
 
-
-    // Test case 3: Normal packet, slowest data rate
-    // Synchronize to falling edge of clock to prevent timing shifts from prior test case(s)
+/*
+    // Test case 10: Premature EOP (works on wave)
     @(negedge tb_clk);
-    tb_test_num += 1;
-    tb_test_case = "Slowest Data-Rate, Normal Packet";
-    
-    // Setup packet info for debugging/verificaton signals
-    tb_test_data       = 8'b11010101;
-    tb_test_stop_bit   = 1'b1;
-    tb_test_bit_period = WORST_SLOW_DATA_PERIOD;
-    tb_test_data_read  = 1'b1;
-    
-    // Define expected ouputs for this test case
-    // For a good packet RX Data value should match data sent
-    tb_expected_rx_data       = tb_test_data;
-    // Valid stop bit ('1') -> Valid data -> Active data ready output
-    tb_expected_data_ready    = tb_test_stop_bit; 
-    // Framing error if and only if bad stop_bit ('0') was sent
-    tb_expected_framing_error = ~tb_test_stop_bit;
-    // Not intentionally creating an overrun condition -> overrun should be 0
-    tb_expected_overrun       = 1'b0;
-    
-    // DUT Reset
-    reset_dut;
-    
-    // Send packet
-    send_packet(tb_test_data, tb_test_stop_bit, tb_test_bit_period);
-    
-    // Wait for 2 data periods to allow DUT to finish processing the packet
-    #(tb_test_bit_period * 2);
-    
-    // Check outputs
-    check_outputs(tb_test_data_read);
-
-
-    // Test case 4: Overrun Error
-    // Synchronize to falling edge of clock to prevent timing shifts from prior test case(s)
-    @(negedge tb_clk);
-    tb_test_num += 1;
-    tb_test_case = "Overrun Error";
-    
-    // Setup packet info for debugging/verificaton signals
-    tb_test_data       = 8'b11010101;
-    tb_test_stop_bit   = 1'b1;
-    tb_test_bit_period = NORM_DATA_PERIOD;
-    tb_test_data_read  = 1'b1;
+    tb_test_num++;
+    tb_test_case = "Premature EOP";
 
     // DUT Reset
-    reset_dut;
+    reset_dut();
 
-    send_packet(tb_test_data, tb_test_stop_bit, tb_test_bit_period);
+    //Sync + PID
+    sync_send();
+    tb_expected_rx_transfer_active = 1'b1;
 
-    // Wait for 2 data periods to allow DUT to finish processing the packet
-    #(tb_test_bit_period * 2);
+    send_encode(8'b00010100);                //DATA0 Encode
 
-    tb_test_data      = 8'b10010001;
-    tb_test_stop_bit   = 1'b1;
-    tb_test_bit_period = NORM_DATA_PERIOD;
-    tb_test_data_read  = 1'b0;
+    tb_test_data            = 8'b10010110;
+    send_encode(tb_test_data);
 
-    // Send packet
-    send_packet(tb_test_data, tb_test_stop_bit, tb_test_bit_period);
-
-    // Wait for 2 data periods to allow DUT to finish processing the packet
-    #(tb_test_bit_period * 2);
-  
-    // Define expected ouputs for this test case
-    // For a good packet RX Data value should match data sent
-    tb_expected_rx_data       = tb_test_data;
-    // Valid stop bit ('1') -> Valid data -> Active data ready output
-    tb_expected_data_ready    = tb_test_stop_bit; 
-    // Framing error if and only if bad stop_bit ('0') was sent
-    tb_expected_framing_error = ~tb_test_stop_bit;
-    // Not intentionally creating an overrun condition -> overrun should be 0
-    tb_expected_overrun       = 1'b1;
-
-    // Check outputs
-    check_outputs(tb_test_data_read);
-
-
-    // Test case 5: Framing Error
-    // Synchronize to falling edge of clock to prevent timing shifts from prior test case(s)
-    //@(negedge tb_clk);
-    tb_test_num += 1;
-    tb_test_case = "Framing Error";
     
-    // Setup packet info for debugging/verificaton signals
-    tb_test_data       = 8'b11010101;
-    tb_test_stop_bit   = 1'b1;
-    tb_test_bit_period = NORM_DATA_PERIOD;
-    tb_test_data_read  = 1'b1;
+    data = tb_test_data;
 
-    // Define expected ouputs for this test case
-    // For a good packet RX Data value should match data sent
-    tb_expected_rx_data       = tb_test_data;
-    // Valid stop bit ('1') -> Valid data -> Active data ready output
-    tb_expected_data_ready    = tb_test_stop_bit; 
-    // Framing error if and only if bad stop_bit ('0') was sent
-    tb_expected_framing_error = ~tb_test_stop_bit;
-    // Not intentionally creating an overrun condition -> overrun should be 0
-    tb_expected_overrun       = 1'b0;
+    for(i = 0; i < 4; i++) 
+    begin
+      tb_dplus_in = data[i];
+      tb_dminus_in = ~data[i];
+      #(DATA_PERIOD);
+    end
+    send_eop();
+ 
+    tb_expected_rx_error = 1'b1;
+    tb_expected_rx_packet = '0;
+    tb_expected_rx_packet_data = '0;
 
-    // DUT Reset
-    reset_dut;
+    check_outputs();
 
-    send_packet(tb_test_data, tb_test_stop_bit, tb_test_bit_period);
-    // Wait for 2 data periods to allow DUT to finish processing the packet
-    #(tb_test_bit_period * 2);
-    check_outputs(tb_test_data_read);
-    tb_serial_in = 1'b1;
-
-
-    tb_test_stop_bit   = 1'b0;
-    // Valid stop bit ('1') -> Valid data -> Active data ready output
-    tb_expected_data_ready    = tb_test_stop_bit; 
-    // Framing error if and only if bad stop_bit ('0') was sent
-    tb_expected_framing_error = ~tb_test_stop_bit;
-
-    send_packet(tb_test_data, tb_test_stop_bit, tb_test_bit_period);
-    // Wait for 2 data periods to allow DUT to finish processing the packet
-    #(tb_test_bit_period * 2);
-    check_outputs(tb_test_data_read);
-    tb_serial_in = 1'b1;
-
-
-    tb_test_stop_bit   = 1'b1;
-    // Valid stop bit ('1') -> Valid data -> Active data ready output
-    tb_expected_data_ready    = tb_test_stop_bit; 
-    // Framing error if and only if bad stop_bit ('0') was sent
-    tb_expected_framing_error = ~tb_test_stop_bit;
-
-    send_packet(tb_test_data, tb_test_stop_bit, tb_test_bit_period);
-    // Wait for 2 data periods to allow DUT to finish processing the packet
-    #(tb_test_bit_period * 2);
-    check_outputs(tb_test_data_read);
-    tb_serial_in = 1'b1;
-
-
-    tb_test_stop_bit   = 1'b0;
-    // Valid stop bit ('1') -> Valid data -> Active data ready output
-    tb_expected_data_ready    = tb_test_stop_bit; 
-    // Framing error if and only if bad stop_bit ('0') was sent
-    tb_expected_framing_error = ~tb_test_stop_bit;
-
-    send_packet(tb_test_data, tb_test_stop_bit, tb_test_bit_period);
-    // Wait for 2 data periods to allow DUT to finish processing the packet
-    #(tb_test_bit_period * 2);
-    check_outputs(tb_test_data_read);
-    tb_serial_in = 1'b1;
+    #(DATA_PERIOD * 2); 
 */
+
+    // Test case 11: Invaid Sync (works on wave)
+    @(negedge tb_clk);
+    tb_test_num++;
+    tb_test_case = "Invalid Sync";
+
+    // DUT Reset
+    reset_dut();
+
+
+    //Invalid Sync
+    tb_dplus_in = 1'b0;
+    tb_dminus_in = 1'b1;
+    #(DATA_PERIOD);
+
+    tb_dplus_in = 1'b1;
+    tb_dminus_in = 1'b0;
+    #(DATA_PERIOD);
+
+    tb_dplus_in = 1'b0;
+    tb_dminus_in = 1'b1;
+    #(DATA_PERIOD);
+
+    tb_dplus_in = 1'b1;
+    tb_dminus_in = 1'b0;
+    #(DATA_PERIOD);
+
+    tb_dplus_in = 1'b0;
+    tb_dminus_in = 1'b1;
+    #(DATA_PERIOD);
+
+    tb_dplus_in = 1'b1;
+    tb_dminus_in = 1'b0;
+    #(DATA_PERIOD);
+
+    tb_dplus_in = 1'b0;
+    tb_dminus_in = 1'b1;
+    #(DATA_PERIOD);
+
+    tb_dplus_in = 1'b1;
+    tb_dminus_in = 1'b0;
+    #(DATA_PERIOD);
+
+    tb_expected_rx_transfer_active = 1'b1;
+
+    tb_expected_rx_error = 1'b1;
+    tb_expected_rx_packet = '0;
+    tb_expected_rx_packet_data = '0;
+
+    check_outputs();
+
+    #(DATA_PERIOD * 2); 
+
+
   
 
   $stop;

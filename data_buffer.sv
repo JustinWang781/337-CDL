@@ -69,6 +69,7 @@ module data_buffer
 
 	always_comb
 	begin : OUT_LOGIC
+		rx_data = '0;
 		if(get_rx_data) begin
 			rx_data = regs[read_ptr];
 		end
