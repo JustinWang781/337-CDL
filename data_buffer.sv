@@ -19,8 +19,8 @@ module data_buffer
 	output	reg  [7:0] rx_data,
 	output	reg  [6:0] buffer_occupancy
 );
-	logic [7:0][63:0] regs;
-	logic [7:0][63:0] nxt_reg;
+	logic [63:0][7:0] regs;
+	logic [63:0][7:0] nxt_reg;
 
 	logic [7:0] read_ptr;
 	logic [7:0] nxt_read_ptr;
@@ -40,7 +40,7 @@ module data_buffer
 			nxt_write_ptr = '0;
 		end
 		else if(store_rx_packet_data) begin
-			if(buffer_occupancy == 63) begin
+			if(buffer_occupancy == 64) begin
 				nxt_reg = '0;
 				nxt_read_ptr = '0;
 				nxt_write_ptr = '0;
