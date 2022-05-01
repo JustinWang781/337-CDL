@@ -39,7 +39,9 @@ module rx_rcu
 							TOKEN_DATA2 = 4'd9,
 							SEND_TOKEN2	= 4'd10,
 							ERROR		= 4'd11,
-							EOP			= 4'd12} stateType;
+							EOP			= 4'd12, 
+							WAIT1		= 4'd13,
+							WAIT2		= 4'd14} stateType;
 
 	stateType state;
 	stateType nxt_state;
@@ -129,7 +131,9 @@ module rx_rcu
 				else begin
 					nxt_state = DATA_REC;
 				end
-			DATA_SEND:
+			DATA_SEND: nxt_state = WAIT1;
+			WAIT1: nxt_state = WAIT2;
+			WAIT2:
 				if(eop) begin
 					nxt_state = EOP;
 				end

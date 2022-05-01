@@ -129,7 +129,7 @@ module tb_usb_rx();
 
   task send_eop;
   begin
-    @(negedge tb_clk);
+    //@(negedge tb_clk);
 
     tb_dplus_in = 1'b0;
     tb_dminus_in = 1'b0;
@@ -499,7 +499,7 @@ module tb_usb_rx();
     #(DATA_PERIOD * 2);
 */
 
-/*
+
     // Test case 8: Send data Check
     @(negedge tb_clk);
     tb_test_num++;
@@ -557,7 +557,7 @@ module tb_usb_rx();
     check_outputs();
 
     #(DATA_PERIOD * 2); 
-*/
+
 
 /*
     // Test case 9: Larger data Check (works on wave)
