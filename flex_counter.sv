@@ -21,7 +21,7 @@ module flex_counter
 );
 	
 	reg [NUM_CNT_BITS-1:0] nxt_count;
-	reg flag;
+	reg nxt_flag;
 
 	
 	always_ff @ (posedge clk, negedge n_rst)
@@ -30,37 +30,38 @@ module flex_counter
 			count_out <= '0;
 			rollover_flag <= 1'b0;
 		end
-		else if(1'b1 == count_enable) begin
-			count_out = nxt_count;
-			rollover_flag = flag;
-		end
-		else begin
-			count_out <= count_out;
-			rollover_flag <= rollover_flag;
+		else begin //if(count_enable) begin
+			count_out <= nxt_count;
+			rollover_flag <= nxt_flag;
 		end
 	end
 
-
-	always_comb
+	always_comb	
 	begin : NXT_COUNT
+		nxt_count = count_out;
+		nxt_flag = rollover_flag;
 
-		if (count_out == rollover_val - 1) begin
-			flag = 1;
-		end
-		else begin
-			flag = 0;
-		end
+		if(count_enable) begin
 
-		if((1'b1 == rollover_flag) || (1'b1 == clear)) begin
-			nxt_count = 0;
-		end
-		else begin
-			nxt_count = count_out + 1;
-		end
+			if(count_out == rollover_val-1) begin
+				nxt_flag = 1'b1;
+			end
+			else begin
+				nxt_flag = 1'b0;
+			end
 
+			if(rollover_flag) begin
+				nxt_count = 0;
+			end
+			else if(clear) begin
+				nxt_count = 0;
+			end
+			else begin
+				nxt_count = count_out + 1;
+			end
+
+		end
 	end
 	
-
-
 endmodule
 

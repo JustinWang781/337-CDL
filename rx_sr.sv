@@ -14,8 +14,6 @@ module rx_sr
 	input	wire d_orig,
 	output	logic [7:0] rcv_data
 );
-	//Are we accounting for a stop or parity bit???
-	//logic [8:0] tmp_data;
 
   	flex_stp_sr#(
     	.NUM_BITS(8),

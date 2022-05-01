@@ -24,7 +24,7 @@ module flex_stp_sr
 	always_ff @ (posedge clk, negedge n_rst)
 	begin : REG_LOGIC
 		if (1'b0 == n_rst) begin
-			parallel_out <= '0;		//Careful (usually is a 1 but in this case I am making it a 0)
+			parallel_out <= '0;
 		end
 		else begin
 			parallel_out <= nxt_par;

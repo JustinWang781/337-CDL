@@ -56,10 +56,9 @@ module rx_rcu
 	pidType pid;
 	
 
-
 	assign buff_full = (buffer_occupancy >> 6) & 1'b1;	//will go high when occupancy is of 64 or higher
-
 	
+	/*
 	always_comb
 	begin : PID_CODES
 		case(rcv_data[3:0])				//Should this be LSB 4 bits or MSB 4 bits?
@@ -72,8 +71,8 @@ module rx_rcu
 			STALL: 	pid = STALL; 		//STALL
 		endcase
 	end
+	*/
 	
-
 	always_comb
 	begin : NXT_LOGIC
 		nxt_state = state;
@@ -134,13 +133,10 @@ module rx_rcu
 				if(eop) begin
 					nxt_state = EOP;
 				end
-				else if(!buff_full) begin //may need to be buff_full == 63
-					nxt_state = DATA_REC;
-				end
-				else if(!eop || buff_full) begin
+				else if(!eop && buff_full) begin
 					nxt_state = ERROR;
 				end
-				else begin
+				else if(!buff_full) begin
 					nxt_state = DATA_REC;
 				end
 			TOKEN_DATA1:
@@ -184,9 +180,6 @@ module rx_rcu
 				if(eop) begin
 					nxt_state = EOP;
 				end
-				//else begin
-				//	nxt_state = ERROR;
-				//end
 			EOP:
 				if(d_edge) begin
 					nxt_state = LOAD_SYNC;	
@@ -256,14 +249,23 @@ module rx_rcu
 				store_rx_packet_data 	= 1'b0;
 				rx_packet				= '0;
 			end
-			SEND_PID:								//need to talk to Justin about PID codes, thinking I should just have them assigned in an always comb block
+			SEND_PID:
 			begin
 				rx_transfer_active	 	= 1'b1;
 				rx_error				= 1'b0;
 				flush					= 1'b1;
 				rx_data_ready		 	= 1'b1;
 				store_rx_packet_data 	= 1'b0;
-				rx_packet				= pid;
+				case(rcv_data[3:0])
+					OUT: 		rx_packet = OUT;
+					IN: 		rx_packet = IN;
+					DATA0:  	rx_packet = DATA0;
+					DATA1: 		rx_packet = DATA1;
+					ACK: 		rx_packet = ACK;
+					NAK: 		rx_packet = NAK;
+					STALL: 		rx_packet = STALL;
+					default: 	rx_packet = '0;
+				endcase
 			end
 			DATA_REC:
 			begin
@@ -272,16 +274,16 @@ module rx_rcu
 				flush					= 1'b0;
 				rx_data_ready		 	= 1'b0;
 				store_rx_packet_data 	= 1'b0;
-				rx_packet				= pid;
+				//rx_packet				= rcv_data[3:0];
 			end
 			DATA_SEND:
 			begin
 				rx_transfer_active	 	= 1'b1;
 				rx_error				= 1'b0;
 				flush					= 1'b0;
-				rx_data_ready		 	= 1'b0;
+				rx_data_ready		 	= 1'b1;
 				store_rx_packet_data 	= 1'b1;
-				rx_packet				= pid;
+				//rx_packet				= rcv_data[3:0];
 				rx_packet_data			= rcv_data;
 			end
 			TOKEN_DATA1:
@@ -322,10 +324,10 @@ module rx_rcu
 			begin
 				rx_transfer_active	 	= 1'b1;
 				rx_error				= 1'b1;
-				flush					= 1'b0;
+				flush					= 1'b1;
 				rx_data_ready		 	= 1'b0;
 				store_rx_packet_data 	= 1'b0;
-				rx_packet				= pid;
+				rx_packet				= '0;
 			end
 			EOP:
 			begin
@@ -334,7 +336,7 @@ module rx_rcu
 				flush					= 1'b0;
 				rx_data_ready		 	= 1'b1;
 				store_rx_packet_data 	= 1'b0;
-				rx_packet				= pid;
+				rx_packet				= '0;
 			end
 		endcase
 	end

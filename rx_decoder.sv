@@ -28,22 +28,10 @@ module rx_decoder
 		nxt_d_orig_1 = d_orig_1;
 		nxt_d_orig_2 = d_orig_2;
 
-		//if(!eop) begin
-
-			if(shift_enable) begin
-				nxt_d_orig_1 = dplus_in_sync;
-				nxt_d_orig_2 = d_orig_1;
-				/*
-				if(d_orig == dplus_in_sync) begin
-					nxt_d_orig = 1;
-				end
-				else begin
-					nxt_d_orig = 0;
-				end
-				*/
-			end
-
-		//end
+		if(shift_enable) begin
+			nxt_d_orig_1 = dplus_in_sync;
+			nxt_d_orig_2 = d_orig_1;
+		end
 	end
 
 	always_ff @ (posedge clk, negedge n_rst)
