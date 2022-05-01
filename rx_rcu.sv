@@ -214,6 +214,7 @@ module rx_rcu
 		flush					= 1'b0;
 		rx_data_ready		 	= 1'b0;
 		store_rx_packet_data 	= 1'b0;
+		rx_packet				= '0;
 		rx_packet_data			= '0;
 
 		case(state)
@@ -278,7 +279,6 @@ module rx_rcu
 				flush					= 1'b0;
 				rx_data_ready		 	= 1'b0;
 				store_rx_packet_data 	= 1'b0;
-				//rx_packet				= rcv_data[3:0];
 			end
 			DATA_SEND:
 			begin
@@ -287,8 +287,12 @@ module rx_rcu
 				flush					= 1'b0;
 				rx_data_ready		 	= 1'b1;
 				store_rx_packet_data 	= 1'b1;
-				//rx_packet				= rcv_data[3:0];
 				rx_packet_data			= rcv_data;
+			end
+			WAIT1:
+			begin
+				rx_data_ready			= 1'b0;
+				store_rx_packet_data	= 1'b0;
 			end
 			TOKEN_DATA1:
 			begin

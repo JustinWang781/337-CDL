@@ -499,7 +499,7 @@ module tb_usb_rx();
     #(DATA_PERIOD * 2);
 */
 
-
+/*
     // Test case 8: Send data Check
     @(negedge tb_clk);
     tb_test_num++;
@@ -557,9 +557,9 @@ module tb_usb_rx();
     check_outputs();
 
     #(DATA_PERIOD * 2); 
+*/
 
 
-/*
     // Test case 9: Larger data Check (works on wave)
     @(negedge tb_clk);
     tb_test_num++;
@@ -620,7 +620,7 @@ module tb_usb_rx();
     check_outputs();
 
     #(DATA_PERIOD * 2);
-*/
+
 
 /*
     // Test case 10: Premature EOP (works on wave)
@@ -754,7 +754,7 @@ module tb_usb_rx();
     //check_outputs();
 
     #(DATA_PERIOD * 2); 
-*/  
+  */
 
   $stop;
   end
